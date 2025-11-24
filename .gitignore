@@ -6,3 +6,4 @@ yarn-debug.log*
 yarn-error.log*
 .expo-dev
 .DS_Store
+.idea

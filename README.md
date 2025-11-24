@@ -25,7 +25,7 @@
 - `__tests__/`：Jest 测试用例。
 
 ## 运行环境
-- Node.js ≥ 18
+- Node.js ≥ 24
 - Expo CLI / `npx expo`（如需真机调试）
 - iOS/Android 模拟器或真机
 

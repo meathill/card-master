@@ -1,17 +1,12 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo', '@babel/preset-typescript'],
-    plugins: [
-      'nativewind/babel',
+    presets: [
       [
-        'module-resolver',
-        {
-          alias: {
-            '@': './src'
-          }
-        }
-      ]
-    ]
+        'babel-preset-expo',
+        { jsxImportSource: "nativewind" }
+      ],
+      'nativewind/babel'
+    ],
   };
 };
