@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "react-native",
+    "lib": ["DOM", "ES2017"],
+    "moduleResolution": "node",
+    "noEmit": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "resolveJsonModule": true,
+    "strict": true,
+    "types": ["jest", "react-native"]
+  },
+  "extends": "expo/tsconfig.base",
+  "include": ["app", "src", "*.ts", "*.tsx", "__tests__"],
+  "exclude": ["node_modules"]
+}
