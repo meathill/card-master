@@ -2,33 +2,22 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
-  FlatList,
-  Image,
-  Modal,
   Pressable,
   Text,
-  TextInput,
   View
 } from 'react-native';
 import ViewShot from 'react-native-view-shot';
-import { ChevronDown, Download, ImagePlus, Info } from 'lucide-react-native';
+import { ChevronDown, ImagePlus, Info } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
-import * as SQLite from 'expo-sqlite';
-import { filterVisibleSkills, Skill, truncateText, validateFeedback } from '@/utils/validation';
-
-const qualities = ['N', 'R', 'SR', 'SSR', 'UR'] as const;
-const skillLevels = ['D', 'C', 'B', 'A', 'S'] as const;
-type Quality = (typeof qualities)[number];
-type SkillLevel = (typeof skillLevels)[number];
-
-type CardData = {
-  name: string;
-  subtitle: string;
-  quality: Quality;
-  imageUri?: string;
-  skills: Skill[];
-};
+import CardPreview from '@/components/card-preview';
+import LabeledInput from '@/components/ui/labeled-input';
+import SettingsTabs from '@/components/settings-tabs';
+import SelectionModal from '@/components/modal/selection-modal';
+import FeedbackModal from '@/components/modal/feedback-modal';
+import { Qualities, SkillLevels } from '@/constants';
+import { filterVisibleSkills, truncateText, validateFeedback } from '@/utils/validation';
+import { CardData, Quality, SkillLevel, SelectionState, SelectionOption } from '@/types';
 
 const defaultCard: CardData = {
   name: '卡牌名称',
@@ -41,288 +30,6 @@ const defaultCard: CardData = {
   ]
 };
 
-type SelectionOption = { label: string; value: string };
-
-type SelectionState = {
-  title: string;
-  options: SelectionOption[];
-  value: string;
-  visible: boolean;
-  onConfirm?: (value: string) => void;
-};
-
-async function getDb() {
-  return SQLite.openDatabaseAsync('card-master.db');
-}
-
-async function setupDatabase() {
-  const db = await getDb();
-  await db.execAsync(
-    'CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY NOT NULL, value TEXT);' +
-      'CREATE TABLE IF NOT EXISTS feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, createdAt TEXT);'
-  );
-  return db;
-}
-
-async function saveCardData(card: CardData) {
-  const db = await getDb();
-  await db.runAsync(
-    'INSERT INTO kv(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
-    ['card', JSON.stringify(card)]
-  );
-}
-
-async function loadCardData(): Promise<CardData | null> {
-  const db = await getDb();
-  const row = await db.getFirstAsync<{ value: string }>('SELECT value FROM kv WHERE key = ?', ['card']);
-  return row?.value ? (JSON.parse(row.value) as CardData) : null;
-}
-
-async function logFeedback(content: string) {
-  const db = await getDb();
-  await db.runAsync('INSERT INTO feedback(content, createdAt) VALUES (?, ?)', [content, new Date().toISOString()]);
-}
-
-function SelectionModal({ state, setState }: { state: SelectionState; setState: (value: SelectionState) => void }) {
-  const [tempValue, setTempValue] = useState(state.value);
-
-  useEffect(() => {
-    setTempValue(state.value);
-  }, [state.value, state.visible]);
-
-  return (
-    <Modal visible={state.visible} transparent animationType="slide" onRequestClose={() => setState({ ...state, visible: false })}>
-      <View className="flex-1 justify-end bg-black/40">
-        <View className="bg-white rounded-t-2xl p-4">
-          <Text className="text-lg font-semibold mb-4">{state.title}</Text>
-          <FlatList
-            data={state.options}
-            keyExtractor={(item) => item.value}
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() => setTempValue(item.value)}
-                className={`flex-row items-center justify-between p-3 rounded-xl mb-2 ${
-                  tempValue === item.value ? 'bg-slate-100' : 'bg-white'
-                }`}
-              >
-                <Text className="text-base">{item.label}</Text>
-                {tempValue === item.value && <Text className="text-primary font-semibold">已选</Text>}
-              </Pressable>
-            )}
-          />
-          <View className="flex-row justify-end mt-2 space-x-3">
-            <Pressable
-              className="px-4 py-2 rounded-xl bg-gray-200"
-              onPress={() => setState({ ...state, visible: false })}
-            >
-              <Text>取消</Text>
-            </Pressable>
-            <Pressable
-              className="px-4 py-2 rounded-xl bg-primary"
-              onPress={() => {
-                state.onConfirm?.(tempValue);
-                setState({ ...state, visible: false });
-              }}
-            >
-              <Text className="text-white">确定</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-function FeedbackModal({
-  visible,
-  content,
-  onChange,
-  onClose,
-  onSubmit
-}: {
-  visible: boolean;
-  content: string;
-  onChange: (value: string) => void;
-  onClose: () => void;
-  onSubmit: () => void;
-}) {
-  return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-white p-6">
-        <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-lg font-semibold">关于产品的说明</Text>
-          <Pressable onPress={onClose} className="px-2 py-1 rounded-full bg-gray-100">
-            <Text>关闭</Text>
-          </Pressable>
-        </View>
-        <Text className="text-base mb-2">提交你的建议</Text>
-        <View className="border border-gray-200 rounded-2xl p-3 bg-gray-50">
-          <TextInput
-            multiline
-            maxLength={1000}
-            placeholder="请输入，不超过1000字"
-            className="min-h-[140px] text-base"
-            value={content}
-            onChangeText={onChange}
-          />
-          <Text className="text-right text-gray-500 text-xs">{content.length}/1000</Text>
-        </View>
-        <Pressable onPress={onSubmit} className="mt-6 rounded-full bg-primary py-3 items-center">
-          <Text className="text-white text-base">提交</Text>
-        </Pressable>
-      </View>
-    </Modal>
-  );
-}
-
-function QualityBadge({ quality }: { quality: Quality }) {
-  return (
-    <View className="absolute right-4 top-4 bg-black/60 px-3 py-1 rounded-full">
-      <Text className="text-lg font-black text-yellow-300">{quality}</Text>
-    </View>
-  );
-}
-
-function SkillBlock({ skills }: { skills: Skill[] }) {
-  if (!skills.length) return null;
-
-  return (
-    <View className="absolute inset-x-3 bottom-4 bg-black/50 rounded-2xl p-3 space-y-2">
-      {skills.map((skill, index) => (
-        <View key={`${skill.title}-${index}`} className="bg-white/90 rounded-xl p-2">
-          <View className="flex-row items-center mb-1">
-            <Text className="text-xs text-gray-500 mr-2">Lv.{skill.level}</Text>
-            <Text className="text-base font-semibold" numberOfLines={1} ellipsizeMode="clip">
-              {skill.title || '技能标题'}
-            </Text>
-          </View>
-          <Text className="text-sm text-gray-800">{skill.content || '技能描述'}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function CardPreview({
-  card,
-  onDownload,
-  viewShotRef
-}: {
-  card: CardData;
-  onDownload: () => void;
-  viewShotRef: React.RefObject<ViewShot>;
-}) {
-  const visibleSkills = filterVisibleSkills(card.skills);
-
-  return (
-    <View className="bg-black rounded-3xl overflow-hidden shadow-xl mb-4">
-      <View className="flex-row items-center justify-between px-4 pt-4">
-        <Text className="text-white font-extrabold text-xl">制卡大师</Text>
-      </View>
-      <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }} style={{ marginHorizontal: 16, marginBottom: 16 }}>
-        <View className="bg-slate-900 rounded-3xl overflow-hidden" collapsable={false}>
-          <View className="h-96 relative">
-            {card.imageUri ? (
-              <Image source={{ uri: card.imageUri }} className="w-full h-full" resizeMode="cover" />
-            ) : (
-              <View className="w-full h-full bg-slate-800 items-center justify-center">
-                <ImagePlus color="#cbd5e1" size={48} />
-                <Text className="text-gray-400 mt-2">选择一张图片</Text>
-              </View>
-            )}
-            <View className="absolute inset-0 border-4 border-yellow-500/50 rounded-3xl" />
-            <QualityBadge quality={card.quality} />
-            <View className="absolute left-4 bottom-24 right-4">
-              <View className="bg-black/50 rounded-xl px-3 py-2 mb-2">
-                <Text className="text-white text-xl font-semibold" numberOfLines={1} ellipsizeMode="clip">
-                  {card.name}
-                </Text>
-              </View>
-              <View className="bg-black/40 rounded-xl px-3 py-2">
-                <Text className="text-white text-sm" numberOfLines={1} ellipsizeMode="clip">
-                  {card.subtitle}
-                </Text>
-              </View>
-            </View>
-            <SkillBlock skills={visibleSkills} />
-          </View>
-          <View className="bg-black px-4 py-3">
-            <Text className="text-center text-white text-xs">微信小程序：制卡大师</Text>
-          </View>
-        </View>
-      </ViewShot>
-      <View className="flex-row justify-end px-4 pb-4">
-        <Pressable onPress={onDownload} className="bg-white rounded-full px-4 py-3 flex-row items-center space-x-2">
-          <Download color="#0f172a" size={20} />
-          <Text className="text-base font-semibold">下载</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
-function LabeledInput({
-  label,
-  value,
-  placeholder,
-  onChangeText,
-  maxLength,
-  multiline = false
-}: {
-  label: string;
-  value: string;
-  placeholder?: string;
-  onChangeText: (value: string) => void;
-  maxLength: number;
-  multiline?: boolean;
-}) {
-  return (
-    <View className="mb-4">
-      <Text className="text-sm text-gray-600 mb-2">{label}</Text>
-      <View className="border border-gray-200 rounded-2xl bg-white px-3 py-2">
-        <TextInput
-          value={value}
-          placeholder={placeholder}
-          onChangeText={(text) => onChangeText(truncateText(text, maxLength))}
-          maxLength={maxLength}
-          multiline={multiline}
-          className="text-base"
-        />
-        <Text className="text-right text-xs text-gray-400">{value.length}/{maxLength}</Text>
-      </View>
-    </View>
-  );
-}
-
-function SettingsTabs({
-  active,
-  onChange
-}: {
-  active: 'basic' | 'skills' | 'stats';
-  onChange: (value: 'basic' | 'skills' | 'stats') => void;
-}) {
-  const tabs: { key: 'basic' | 'skills' | 'stats'; label: string }[] = [
-    { key: 'basic', label: '基本' },
-    { key: 'skills', label: '技能' },
-    { key: 'stats', label: '数值' }
-  ];
-
-  return (
-    <View className="flex-row bg-white rounded-full p-1 mb-4">
-      {tabs.map((tab) => (
-        <Pressable
-          key={tab.key}
-          onPress={() => onChange(tab.key)}
-          className={`flex-1 py-2 rounded-full items-center ${active === tab.key ? 'bg-primary' : ''}`}
-        >
-          <Text className={`text-base ${active === tab.key ? 'text-white font-semibold' : 'text-gray-700'}`}>
-            {tab.label}
-          </Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
 
 export default function Card() {
   const [card, setCard] = useState<CardData>(defaultCard);
@@ -338,24 +45,6 @@ export default function Card() {
   const [dbReady, setDbReady] = useState(false);
   const viewShotRef = useRef<ViewShot>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    (async () => {
-      await setupDatabase();
-      const saved = await loadCardData();
-      if (saved) {
-        setCard({ ...defaultCard, ...saved });
-      }
-      setDbReady(true);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (!dbReady) return;
-    saveCardData(card).catch(() => {
-      // best-effort persistence
-    });
-  }, [card, dbReady]);
 
   const openSelect = (title: string, options: SelectionOption[], value: string, onConfirm: (val: string) => void) => {
     setSelectionState({ title, options, value, visible: true, onConfirm });
@@ -402,7 +91,7 @@ export default function Card() {
       Alert.alert(result.error ?? '请填写内容');
       return;
     }
-    await logFeedback(feedbackContent.trim());
+    // await logFeedback(feedbackContent.trim());
     setFeedbackContent('');
     Alert.alert('你的反馈我们已收到，谢谢！', '', [
       {
@@ -472,7 +161,7 @@ export default function Card() {
                   onPress={() =>
                     openSelect(
                       '选择品质',
-                      qualities.map((q) => ({ label: q, value: q })),
+                      Qualities.map((q) => ({ label: q, value: q })),
                       card.quality,
                       (value) => setCard((prev) => ({ ...prev, quality: value as Quality }))
                     )
@@ -524,7 +213,7 @@ export default function Card() {
                       onPress={() =>
                         openSelect(
                           '选择技能等级',
-                          skillLevels.map((lvl) => ({ label: lvl, value: lvl })),
+                          SkillLevels.map((lvl) => ({ label: lvl, value: lvl })),
                           skill.level as SkillLevel,
                           (value) =>
                             setCard((prev) => {

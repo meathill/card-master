@@ -1,8 +1,4 @@
-export type Skill = {
-  title: string;
-  content: string;
-  level: string;
-};
+import { Skill } from '@/types';
 
 export function truncateText(value: string, maxLength: number): string {
   if (maxLength <= 0) return '';
