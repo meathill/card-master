@@ -1,19 +1,26 @@
 {
-  "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "jsx": "react-native",
-    "lib": ["DOM", "ES2017"],
-    "moduleResolution": "node",
-    "noEmit": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "resolveJsonModule": true,
-    "strict": true,
-    "types": ["jest", "react-native"]
-  },
   "extends": "expo/tsconfig.base",
-  "include": ["app", "src", "*.ts", "*.tsx", "__tests__"],
-  "exclude": ["node_modules"]
+  "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "strict": true,
+    "types": [
+      "jest",
+      "react-native"
+    ]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "nativewind-env.d.ts",
+    "__tests__"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

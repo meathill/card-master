@@ -324,7 +324,7 @@ function SettingsTabs({
   );
 }
 
-export default function CardMakerScreen() {
+export default function Card() {
   const [card, setCard] = useState<CardData>(defaultCard);
   const [activeTab, setActiveTab] = useState<'basic' | 'skills' | 'stats'>('basic');
   const [feedbackVisible, setFeedbackVisible] = useState(false);
