@@ -14,7 +14,7 @@ export default function SettingsTabs({
   ];
 
   return (
-    <View className="flex-row bg-white rounded-full p-1 mb-4">
+    <View className="flex-row bg-white rounded-full p-1 mb-4" style={{ flexDirection: 'row', backgroundColor: '#fff', borderRadius: 9999, padding: 4, marginBottom: 16 }}>
       {tabs.map((tab) => (
         <Pressable
           key={tab.key}

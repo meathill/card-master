@@ -17,9 +17,9 @@ export default function LabeledInput({
   multiline?: boolean;
 }) {
   return (
-    <View className="mb-4">
-      <Text className="text-sm text-gray-600 mb-2">{label}</Text>
-      <View className="border border-gray-200 rounded-2xl bg-white px-3 py-2">
+    <View className="mb-4" style={{marginBottom: 16}}>
+      <Text className="text-sm text-gray-600 mb-2" style={{ fontSize: 14, color: '#4A5565', marginBottom: 8 }}>{label}</Text>
+      <View className="border border-gray-200 rounded-2xl bg-white px-3 py-2" style={{ borderWidth: 1, borderStyle: 'solid', borderColor: '#E5E7Eb', borderRadius: 16, backgroundColor: '#fff', paddingInline: 12, paddingBlock: 8 }}>
         <TextInput
           value={value}
           placeholder={placeholder}
@@ -27,8 +27,9 @@ export default function LabeledInput({
           maxLength={maxLength}
           multiline={multiline}
           className="text-base"
+          style={{ fontSize: 16 }}
         />
-        <Text className="text-right text-xs text-gray-400">{value.length}/{maxLength}</Text>
+        <Text className="text-right text-xs text-gray-400" style={{ textAlign: 'right', fontSize: 12, color: '#99A1AF' }}>{value.length}/{maxLength}</Text>
       </View>
     </View>
   );
