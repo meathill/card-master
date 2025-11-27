@@ -1,5 +1,12 @@
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 export default function Divider() {
-  return <View className="h-px bg-gray-100" />;
+  return <View style={styles.divider} />;
 }
+
+const styles = StyleSheet.create({
+  divider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+  },
+});

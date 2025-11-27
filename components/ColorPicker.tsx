@@ -61,8 +61,7 @@ export default function CustomColorPicker({
     <BaseModal
       backgroundColor={currentColor}
       button={<View
-        className="h-16 rounded justify-center items-center"
-        style={{ backgroundColor: customColor || '#eee', width: buttonWidth }}
+        style={[styles.buttonContainer, { backgroundColor: customColor || '#eee', width: buttonWidth }]}
       >
         {isCustomColor
           ? <CheckIcon color={textColor} size="32" />
@@ -71,7 +70,7 @@ export default function CustomColorPicker({
       </View>}
       onClose={onModalClose}
     >
-      <ThemedView className="self-center w-72 p-5 rounded shadow">
+      <ThemedView style={styles.pickerContainer}>
         <ColorPicker
           value={resultColor}
           sliderThickness={25}
@@ -87,35 +86,35 @@ export default function CustomColorPicker({
           boundedThumb
         >
           <View>
-            <ThemedText className="font-bold mb-1 px-1">Red</ThemedText>
-            <RedSlider style={colorPickerStyle.sliderStyle}
+            <ThemedText style={styles.sliderLabel}>Red</ThemedText>
+            <RedSlider style={styles.sliderStyle}
             />
           </View>
 
           <View>
-            <Text className="font-bold mb-1 px-1">Green</Text>
-            <GreenSlider style={colorPickerStyle.sliderStyle} />
+            <Text style={styles.sliderLabel}>Green</Text>
+            <GreenSlider style={styles.sliderStyle} />
           </View>
 
           <View>
-            <Text className="font-bold mb-1 px-1">Blue</Text>
-            <BlueSlider style={colorPickerStyle.sliderStyle} />
+            <Text style={styles.sliderLabel}>Blue</Text>
+            <BlueSlider style={styles.sliderStyle} />
           </View>
 
           <View>
-            <Text className="font-bold mb-1 px-1">Opacity</Text>
-            <OpacitySlider style={colorPickerStyle.sliderStyle} />
+            <Text style={styles.sliderLabel}>Opacity</Text>
+            <OpacitySlider style={styles.sliderStyle} />
           </View>
 
           <Divider />
           <Swatches
-            style={colorPickerStyle.swatchesContainer}
-            swatchStyle={colorPickerStyle.swatchStyle}
+            style={styles.swatchesContainer}
+            swatchStyle={styles.swatchStyle}
             colors={customSwatches}
           />
           <Divider />
 
-          <View className="flex-row justify-between">
+          <View style={styles.previewRow}>
             <PreviewText style={{ color: '#707070' }} colorFormat='rgba' />
             <PreviewText style={{ color: '#707070' }} colorFormat='hex' />
           </View>
@@ -125,10 +124,31 @@ export default function CustomColorPicker({
   );
 }
 
-export const colorPickerStyle = StyleSheet.create({
+const styles = StyleSheet.create({
+  buttonContainer: {
+    height: 64,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerContainer: {
+    alignSelf: 'center',
+    width: 288,
+    padding: 20,
+    borderRadius: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sliderLabel: {
+    fontWeight: '700',
+    marginBottom: 4,
+    paddingHorizontal: 4,
+  },
   sliderStyle: {
     borderRadius: 20,
-
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -136,7 +156,6 @@ export const colorPickerStyle = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-
     elevation: 5,
   },
   swatchesContainer: {
@@ -152,5 +171,9 @@ export const colorPickerStyle = StyleSheet.create({
     marginBottom: 0,
     marginHorizontal: 0,
     marginVertical: 0,
+  },
+  previewRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });

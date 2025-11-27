@@ -103,13 +103,12 @@ export default function Card() {
       <Animated.View style={{ transform: [{ scale: previewScale }] }}>
         <CardPreview card={card} onDownload={handleDownload} viewShotRef={viewShotRef} />
       </Animated.View>
-      <View style={{ flex: 1, paddingInline: 16, paddingBottom: 16 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12}}>
-          <Text style={{ fontSize: 24, fontWeight: 700, marginEnd: 8 }}>设置</Text>
+      <View style={styles.settingsContainer}>
+        <View style={styles.settingsHeader}>
+          <Text style={styles.settingsTitle}>设置</Text>
           <Pressable 
             onPress={() => setFeedbackVisible(true)} 
-            className="p-2 rounded-full bg-white"
-            style={{ padding: 8, borderRadius: 9999, backgroundColor: '#fff' }}
+            style={styles.infoButton}
           >
             <Info size={18} color="#0f172a" />
           </Pressable>
@@ -119,12 +118,11 @@ export default function Card() {
           onChange={setActiveTab} 
         />
         <Animated.ScrollView
-          className="bg-white rounded-3xl p-4"
           onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
             useNativeDriver: true
           })}
           scrollEventThrottle={16}
-          style={{ backgroundColor: '#fff', borderRadius: 24, padding: 16 }}
+          style={styles.scrollView}
         >
           {activeTab === 'basic' && (
             <View>
@@ -142,19 +140,18 @@ export default function Card() {
                 maxLength={25}
                 onChangeText={(text) => setCard((prev) => ({ ...prev, subtitle: text }))}
               />
-              <View className="mb-4" style={{ marginBottom: 16 }}>
-                <Text className="text-sm text-gray-600 mb-2" style={{ fontSize: 14, color: '#4A5565', marginBottom: 8 }}>图片</Text>
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>图片</Text>
                 <Pressable
                   onPress={handlePickImage}
-                  className="border border-dashed border-gray-300 rounded-2xl bg-gray-50 h-36 items-center justify-center"
-                  style={{ borderWidth: 1, borderStyle: 'dashed', borderColor: '#D1D5DC', borderRadius: 16, backgroundColor: '#F9FAFb', height: 144, alignItems: 'center', justifyContent: 'center' }}
+                  style={styles.imagePickerButton}
                 >
                   <ImagePlus color="#0f172a" />
-                  <Text className="text-sm text-gray-600 mt-2" style={{ fontSize: 14, color: '#4A5565', marginBottom: 8 }}>{card.imageUri ? '重新选择图片' : '从相册选图'}</Text>
+                  <Text style={styles.imagePickerText}>{card.imageUri ? '重新选择图片' : '从相册选图'}</Text>
                 </Pressable>
               </View>
-              <View className="mb-4" style={{ marginBottom: 16 }}>
-                <Text className="text-sm text-gray-600 mb-2" style={{ fontSize: 14, color: '#4A5565', marginBottom: 8}}>品质</Text>
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>品质</Text>
                 <Pressable
                   onPress={() =>
                     openSelect(
@@ -164,10 +161,9 @@ export default function Card() {
                       (value) => setCard((prev) => ({ ...prev, quality: value as Quality }))
                     )
                   }
-                  className="border border-gray-200 rounded-2xl bg-gray-50 px-3 py-3 flex-row items-center justify-between"
-                  style={{ borderWidth: 1, borderStyle: 'dashed', borderColor: '#D1D5DC', borderRadius: 16, backgroundColor: '#F9FAFb', padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
+                  style={styles.selectButton}
                 >
-                  <Text className="text-base" style={{ fontSize: 16 }}>{card.quality}</Text>
+                  <Text style={styles.selectButtonText}>{card.quality}</Text>
                   <ChevronDown color="#0f172a" />
                 </Pressable>
               </View>
@@ -177,8 +173,8 @@ export default function Card() {
           {activeTab === 'skills' && (
             <View>
               {card.skills.map((skill, index) => (
-                <View key={index} className="mb-4" style={{ marginBottom: 16 }}>
-                  <Text className="text-sm text-gray-600 mb-2" style={{ fontSize: 14, color: '#4A5565', marginBottom: 8}}>技能 {index + 1}</Text>
+                <View key={index} style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>技能 {index + 1}</Text>
                   <LabeledInput
                     label="技能标题"
                     value={skill.title}
@@ -206,8 +202,8 @@ export default function Card() {
                       })
                     }
                   />
-                  <View className="mb-2" style={{ marginBottom: 8 }}>
-                    <Text className="text-sm text-gray-600 mb-2" style={{ fontSize: 14, color: '#4A5565', marginBottom: 8}}>技能等级</Text>
+                  <View style={styles.skillLevelContainer}>
+                    <Text style={styles.fieldLabel}>技能等级</Text>
                     <Pressable
                       onPress={() =>
                         openSelect(
@@ -222,23 +218,23 @@ export default function Card() {
                             })
                         )
                       }
-                      className="border border-gray-200 rounded-2xl bg-gray-50 px-3 py-3 flex-row items-center justify-between"
+                      style={styles.skillLevelButton}
                     >
-                      <Text className="text-base" style={{ fontSize: 16 }}>{skill.level}</Text>
+                      <Text style={styles.selectButtonText}>{skill.level}</Text>
                       <ChevronDown color="#0f172a" />
                     </Pressable>
                   </View>
                 </View>
               ))}
               {visibleSkills.length === 0 && (
-                <Text className="text-sm text-gray-500" style={{ fontSize: 14, color: '#6A7282' }}>填写技能标题或内容后将在卡牌上显示。</Text>
+                <Text style={styles.hintText}>填写技能标题或内容后将在卡牌上显示。</Text>
               )}
             </View>
           )}
 
           {activeTab === 'stats' && (
             <View>
-              <Text className="text-gray-500" style={{ color: '#6A7282' }}>暂未开放的数值设置，敬请期待。</Text>
+              <Text style={styles.placeholderText}>暂未开放的数值设置，敬请期待。</Text>
             </View>
           )}
         </Animated.ScrollView>
@@ -260,5 +256,88 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f1f5f9',
+  },
+  settingsContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  settingsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  settingsTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginEnd: 8,
+  },
+  infoButton: {
+    padding: 8,
+    borderRadius: 9999,
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 16,
+  },
+  fieldContainer: {
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    color: '#4A5565',
+    marginBottom: 8,
+  },
+  imagePickerButton: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#D1D5DC',
+    borderRadius: 16,
+    backgroundColor: '#F9FAFB',
+    height: 144,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imagePickerText: {
+    fontSize: 14,
+    color: '#4A5565',
+    marginTop: 8,
+  },
+  selectButton: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#D1D5DC',
+    borderRadius: 16,
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectButtonText: {
+    fontSize: 16,
+  },
+  skillLevelContainer: {
+    marginBottom: 8,
+  },
+  skillLevelButton: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  hintText: {
+    fontSize: 14,
+    color: '#6A7282',
+  },
+  placeholderText: {
+    color: '#6A7282',
   },
 });

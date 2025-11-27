@@ -1,4 +1,4 @@
-import { TextInput, Text, View } from 'react-native';
+import { TextInput, StyleSheet, Text, View } from 'react-native';
 import { truncateText } from '@/utils/validation';
 
 export default function LabeledInput({
@@ -17,20 +17,47 @@ export default function LabeledInput({
   multiline?: boolean;
 }) {
   return (
-    <View className="mb-4" style={{marginBottom: 16}}>
-      <Text className="text-sm text-gray-600 mb-2" style={{ fontSize: 14, color: '#4A5565', marginBottom: 8 }}>{label}</Text>
-      <View className="border border-gray-200 rounded-2xl bg-white px-3 py-2" style={{ borderWidth: 1, borderStyle: 'solid', borderColor: '#E5E7Eb', borderRadius: 16, backgroundColor: '#fff', paddingInline: 12, paddingBlock: 8 }}>
+    <View style={styles.container}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.inputContainer}>
         <TextInput
           value={value}
           placeholder={placeholder}
           onChangeText={(text) => onChangeText(truncateText(text, maxLength))}
           maxLength={maxLength}
           multiline={multiline}
-          className="text-base"
-          style={{ fontSize: 16 }}
+          style={styles.input}
         />
-        <Text className="text-right text-xs text-gray-400" style={{ textAlign: 'right', fontSize: 12, color: '#99A1AF' }}>{value.length}/{maxLength}</Text>
+        <Text style={styles.counter}>{value.length}/{maxLength}</Text>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    color: '#4A5565',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  input: {
+    fontSize: 16,
+  },
+  counter: {
+    textAlign: 'right',
+    fontSize: 12,
+    color: '#99A1AF',
+  },
+});

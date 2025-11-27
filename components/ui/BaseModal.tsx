@@ -1,13 +1,11 @@
 import { PropsWithChildren, ReactNode, useState } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, SharedValue } from 'react-native-reanimated';
-import { clsx } from 'clsx';
 import { XIcon } from 'lucide-react-native';
 
 type BaseModalProps = PropsWithChildren & {
   backgroundColor?: SharedValue<string>;
   button: ReactNode;
-  className?: string;
   onClose?: () => void;
 };
 
@@ -15,7 +13,6 @@ export default function BaseModal({
   backgroundColor,
   button,
   children,
-  className,
   onClose,
 }: BaseModalProps) {
   const [showModal, setShowModal] = useState(false);
@@ -39,13 +36,12 @@ export default function BaseModal({
 
       <Modal onRequestClose={() => setShowModal(false)} visible={showModal} animationType='slide'>
         <Animated.View
-          className={clsx('flex-1', className)}
-          style={backgroundColorStyle}
+          style={[styles.modalContainer, backgroundColorStyle]}
         >
-          <View className="flex-1 justify-center">
+          <View style={styles.content}>
             {children}
             <Pressable
-              className="justify-center items-center mt-6 mx-auto bg-white size-8  rounded-full"
+              style={styles.closeButton}
               onPress={doClose}
             >
               <XIcon size={24} />
@@ -57,3 +53,23 @@ export default function BaseModal({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  closeButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+    marginHorizontal: 'auto',
+    backgroundColor: '#fff',
+    width: 32,
+    height: 32,
+    borderRadius: 9999,
+  },
+});

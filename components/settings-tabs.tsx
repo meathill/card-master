@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function SettingsTabs({
   active,
@@ -14,14 +14,14 @@ export default function SettingsTabs({
   ];
 
   return (
-    <View className="flex-row bg-white rounded-full p-1 mb-4" style={{ flexDirection: 'row', backgroundColor: '#fff', borderRadius: 9999, padding: 4, marginBottom: 16 }}>
+    <View style={styles.container}>
       {tabs.map((tab) => (
         <Pressable
           key={tab.key}
           onPress={() => onChange(tab.key)}
-          className={`flex-1 py-2 rounded-full items-center ${active === tab.key ? 'bg-primary' : ''}`}
+          style={[styles.tab, active === tab.key && styles.tabActive]}
         >
-          <Text className={`text-base ${active === tab.key ? 'text-white font-semibold' : 'text-gray-700'}`}>
+          <Text style={[styles.tabText, active === tab.key && styles.tabTextActive]}>
             {tab.label}
           </Text>
         </Pressable>
@@ -29,3 +29,30 @@ export default function SettingsTabs({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 9999,
+    padding: 4,
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 9999,
+    alignItems: 'center',
+  },
+  tabActive: {
+    backgroundColor: '#1e40af',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#374151',
+  },
+  tabTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+});

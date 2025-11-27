@@ -2,7 +2,6 @@ import {DarkTheme, DefaultTheme, ThemeProvider} from "@react-navigation/native";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {Stack} from "expo-router";
 import {useColorScheme} from "@/hooks/useColorScheme";
-import '../global.css';
 
 
 export default function RootLayout() {
