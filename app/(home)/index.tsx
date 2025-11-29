@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   Alert,
-  Animated,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
 import ViewShot from 'react-native-view-shot';
 import { ChevronDown, ImagePlus, Info } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import CardPreview from '@/components/card-preview';
+import BottomDrawer, { BottomDrawerRef } from '@/components/BottomDrawer';
 import LabeledInput from '@/components/ui/labeled-input';
 import SettingsTabs from '@/components/settings-tabs';
 import SelectionModal from '@/components/modal/selection-modal';
@@ -19,6 +22,9 @@ import FeedbackModal from '@/components/modal/feedback-modal';
 import { createDefaultCard, Qualities, SkillLevels } from '@/constants';
 import { filterVisibleSkills, truncateText, validateFeedback } from '@/utils/validation';
 import { CardData, Quality, SkillLevel, SelectionState, SelectionOption } from '@/types';
+import { setupDatabase, saveCardData, loadCardData, logFeedback } from '@/lib/db';
+
+const TIMING_CONFIG = { duration: 250, easing: Easing.out(Easing.cubic) };
 
 export default function Card() {
   const [card, setCard] = useState<CardData>(createDefaultCard());
@@ -32,8 +38,58 @@ export default function Card() {
     visible: false
   });
   const [dbReady, setDbReady] = useState(false);
-  const viewShotRef = useRef<ViewShot>(null);
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const viewShotRef = useRef<ViewShot | null>(null);
+  const drawerRef = useRef<BottomDrawerRef>(null);
+  const previewScale = useSharedValue(1);
+  const isCollapsed = useRef(false);
+
+  // 抽屉拖动时更新预览缩放
+  const handleDrawerProgress = useCallback((progress: number) => {
+    // progress: 0=展开, 1=收起
+    // 收起时放大到1.15
+    previewScale.value = 1 + progress * 0.15;
+    isCollapsed.current = progress > 0.5;
+  }, []);
+
+  // 点击预览区切换抽屉状态
+  const handlePreviewPress = useCallback(() => {
+    if (isCollapsed.current) {
+      drawerRef.current?.expand();
+      previewScale.value = withTiming(1, TIMING_CONFIG);
+      isCollapsed.current = false;
+    } else {
+      drawerRef.current?.collapse();
+      previewScale.value = withTiming(1.15, TIMING_CONFIG);
+      isCollapsed.current = true;
+    }
+  }, []);
+
+  const previewAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: previewScale.value }],
+  }));
+
+  // 初始化数据库并加载保存的卡牌数据
+  useEffect(() => {
+    (async () => {
+      try {
+        await setupDatabase();
+        setDbReady(true);
+        const savedCard = await loadCardData();
+        if (savedCard) {
+          setCard(savedCard);
+        }
+      } catch (error) {
+        console.error('Database init failed:', error);
+      }
+    })();
+  }, []);
+
+  // 保存卡牌数据到数据库
+  useEffect(() => {
+    if (dbReady) {
+      saveCardData(card).catch(console.error);
+    }
+  }, [card, dbReady]);
 
   const openSelect = (title: string, options: SelectionOption[], value: string, onConfirm: (val: string) => void) => {
     setSelectionState({ title, options, value, visible: true, onConfirm });
@@ -80,7 +136,7 @@ export default function Card() {
       Alert.alert(result.error ?? '请填写内容');
       return;
     }
-    // await logFeedback(feedbackContent.trim());
+    await logFeedback(feedbackContent.trim());
     setFeedbackContent('');
     Alert.alert('你的反馈我们已收到，谢谢！', '', [
       {
@@ -92,153 +148,146 @@ export default function Card() {
 
   const visibleSkills = useMemo(() => filterVisibleSkills(card.skills), [card.skills]);
 
-  const previewScale = scrollY.interpolate({
-    inputRange: [-120, 0],
-    outputRange: [1.15, 1],
-    extrapolate: 'clamp'
-  });
-
   return (
-    <View style={styles.container}>
-      <Animated.View style={{ transform: [{ scale: previewScale }] }}>
-        <CardPreview card={card} onDownload={handleDownload} viewShotRef={viewShotRef} />
-      </Animated.View>
-      <View style={styles.settingsContainer}>
-        <View style={styles.settingsHeader}>
-          <Text style={styles.settingsTitle}>设置</Text>
-          <Pressable 
-            onPress={() => setFeedbackVisible(true)} 
-            style={styles.infoButton}
-          >
-            <Info size={18} color="#0f172a" />
-          </Pressable>
-        </View>
-        <SettingsTabs 
-          active={activeTab} 
-          onChange={setActiveTab} 
-        />
-        <Animated.ScrollView
-          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-            useNativeDriver: true
-          })}
-          scrollEventThrottle={16}
-          style={styles.scrollView}
-        >
-          {activeTab === 'basic' && (
-            <View>
-              <LabeledInput
-                label="名称"
-                value={card.name}
-                placeholder="请输入名称"
-                maxLength={15}
-                onChangeText={(text) => setCard((prev) => ({ ...prev, name: text }))}
-              />
-              <LabeledInput
-                label="副标题"
-                value={card.subtitle}
-                placeholder="请输入副标题"
-                maxLength={25}
-                onChangeText={(text) => setCard((prev) => ({ ...prev, subtitle: text }))}
-              />
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>图片</Text>
-                <Pressable
-                  onPress={handlePickImage}
-                  style={styles.imagePickerButton}
-                >
-                  <ImagePlus color="#0f172a" />
-                  <Text style={styles.imagePickerText}>{card.imageUri ? '重新选择图片' : '从相册选图'}</Text>
-                </Pressable>
-              </View>
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>品质</Text>
-                <Pressable
-                  onPress={() =>
-                    openSelect(
-                      '选择品质',
-                      Qualities.map((q) => ({ label: q, value: q })),
-                      card.quality,
-                      (value) => setCard((prev) => ({ ...prev, quality: value as Quality }))
-                    )
-                  }
-                  style={styles.selectButton}
-                >
-                  <Text style={styles.selectButtonText}>{card.quality}</Text>
-                  <ChevronDown color="#0f172a" />
-                </Pressable>
-              </View>
-            </View>
-          )}
-
-          {activeTab === 'skills' && (
-            <View>
-              {card.skills.map((skill, index) => (
-                <View key={index} style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>技能 {index + 1}</Text>
-                  <LabeledInput
-                    label="技能标题"
-                    value={skill.title}
-                    placeholder="请输入技能标题"
-                    maxLength={10}
-                    onChangeText={(text) =>
-                      setCard((prev) => {
-                        const skills = [...prev.skills];
-                        skills[index] = { ...skills[index], title: text };
-                        return { ...prev, skills };
-                      })
-                    }
-                  />
-                  <LabeledInput
-                    label="技能正文"
-                    value={skill.content}
-                    placeholder="请输入技能描述"
-                    maxLength={120}
-                    multiline
-                    onChangeText={(text) =>
-                      setCard((prev) => {
-                        const skills = [...prev.skills];
-                        skills[index] = { ...skills[index], content: text };
-                        return { ...prev, skills };
-                      })
-                    }
-                  />
-                  <View style={styles.skillLevelContainer}>
-                    <Text style={styles.fieldLabel}>技能等级</Text>
-                    <Pressable
-                      onPress={() =>
-                        openSelect(
-                          '选择技能等级',
-                          SkillLevels.map((lvl) => ({ label: lvl, value: lvl })),
-                          skill.level as SkillLevel,
-                          (value) =>
-                            setCard((prev) => {
-                              const skills = [...prev.skills];
-                              skills[index] = { ...skills[index], level: value };
-                              return { ...prev, skills };
-                            })
-                        )
-                      }
-                      style={styles.skillLevelButton}
-                    >
-                      <Text style={styles.selectButtonText}>{skill.level}</Text>
-                      <ChevronDown color="#0f172a" />
-                    </Pressable>
-                  </View>
+    <GestureHandlerRootView style={styles.container}>
+      <Pressable style={styles.previewContainer} onPress={handlePreviewPress}>
+        <Animated.View style={previewAnimatedStyle}>
+          <CardPreview card={card} onDownload={handleDownload} viewShotRef={viewShotRef} />
+        </Animated.View>
+      </Pressable>
+      
+      <BottomDrawer ref={drawerRef} onProgressChange={handleDrawerProgress}>
+        <View style={styles.settingsContainer}>
+          <View style={styles.settingsHeader}>
+            <Text style={styles.settingsTitle}>设置</Text>
+            <Pressable 
+              onPress={() => setFeedbackVisible(true)} 
+              style={styles.infoButton}
+            >
+              <Info size={18} color="#0f172a" />
+            </Pressable>
+          </View>
+          <SettingsTabs 
+            active={activeTab} 
+            onChange={setActiveTab} 
+          />
+          <ScrollView style={styles.scrollView}>
+            {activeTab === 'basic' && (
+              <View>
+                <LabeledInput
+                  label="名称"
+                  value={card.name}
+                  placeholder="请输入名称"
+                  maxLength={15}
+                  onChangeText={(text) => setCard((prev) => ({ ...prev, name: text }))}
+                />
+                <LabeledInput
+                  label="副标题"
+                  value={card.subtitle}
+                  placeholder="请输入副标题"
+                  maxLength={25}
+                  onChangeText={(text) => setCard((prev) => ({ ...prev, subtitle: text }))}
+                />
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>图片</Text>
+                  <Pressable
+                    onPress={handlePickImage}
+                    style={styles.imagePickerButton}
+                  >
+                    <ImagePlus color="#0f172a" />
+                    <Text style={styles.imagePickerText}>{card.imageUri ? '重新选择图片' : '从相册选图'}</Text>
+                  </Pressable>
                 </View>
-              ))}
-              {visibleSkills.length === 0 && (
-                <Text style={styles.hintText}>填写技能标题或内容后将在卡牌上显示。</Text>
-              )}
-            </View>
-          )}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>品质</Text>
+                  <Pressable
+                    onPress={() =>
+                      openSelect(
+                        '选择品质',
+                        Qualities.map((q) => ({ label: q, value: q })),
+                        card.quality,
+                        (value) => setCard((prev) => ({ ...prev, quality: value as Quality }))
+                      )
+                    }
+                    style={styles.selectButton}
+                  >
+                    <Text style={styles.selectButtonText}>{card.quality}</Text>
+                    <ChevronDown color="#0f172a" />
+                  </Pressable>
+                </View>
+              </View>
+            )}
 
-          {activeTab === 'stats' && (
-            <View>
-              <Text style={styles.placeholderText}>暂未开放的数值设置，敬请期待。</Text>
-            </View>
-          )}
-        </Animated.ScrollView>
-      </View>
+            {activeTab === 'skills' && (
+              <View>
+                {card.skills.map((skill, index) => (
+                  <View key={index} style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>技能 {index + 1}</Text>
+                    <LabeledInput
+                      label="技能标题"
+                      value={skill.title}
+                      placeholder="请输入技能标题"
+                      maxLength={10}
+                      onChangeText={(text) =>
+                        setCard((prev) => {
+                          const skills = [...prev.skills];
+                          skills[index] = { ...skills[index], title: text };
+                          return { ...prev, skills };
+                        })
+                      }
+                    />
+                    <LabeledInput
+                      label="技能正文"
+                      value={skill.content}
+                      placeholder="请输入技能描述"
+                      maxLength={120}
+                      multiline
+                      onChangeText={(text) =>
+                        setCard((prev) => {
+                          const skills = [...prev.skills];
+                          skills[index] = { ...skills[index], content: text };
+                          return { ...prev, skills };
+                        })
+                      }
+                    />
+                    <View style={styles.skillLevelContainer}>
+                      <Text style={styles.fieldLabel}>技能等级</Text>
+                      <Pressable
+                        onPress={() =>
+                          openSelect(
+                            '选择技能等级',
+                            SkillLevels.map((lvl) => ({ label: lvl, value: lvl })),
+                            skill.level as SkillLevel,
+                            (value) =>
+                              setCard((prev) => {
+                                const skills = [...prev.skills];
+                                skills[index] = { ...skills[index], level: value };
+                                return { ...prev, skills };
+                              })
+                          )
+                        }
+                        style={styles.skillLevelButton}
+                      >
+                        <Text style={styles.selectButtonText}>{skill.level}</Text>
+                        <ChevronDown color="#0f172a" />
+                      </Pressable>
+                    </View>
+                  </View>
+                ))}
+                {visibleSkills.length === 0 && (
+                  <Text style={styles.hintText}>填写技能标题或内容后将在卡牌上显示。</Text>
+                )}
+              </View>
+            )}
+
+            {activeTab === 'stats' && (
+              <View>
+                <Text style={styles.placeholderText}>暂未开放的数值设置，敬请期待。</Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      </BottomDrawer>
 
       <SelectionModal state={selectionState} setState={setSelectionState} />
       <FeedbackModal
@@ -248,19 +297,25 @@ export default function Card() {
         onClose={() => setFeedbackVisible(false)}
         onSubmit={onSubmitFeedback}
       />
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#000',
+  },
+  previewContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 80,
   },
   settingsContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingBottom: 16,
   },
   settingsHeader: {
     flexDirection: 'row',

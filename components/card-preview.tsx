@@ -44,7 +44,7 @@ export default function CardPreview({
 }: {
   card: CardData;
   onDownload: () => void;
-  viewShotRef: React.RefObject<ViewShot>;
+  viewShotRef: React.RefObject<ViewShot | null>;
 }) {
   const visibleSkills = filterVisibleSkills(card.skills);
 

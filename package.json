@@ -33,6 +33,7 @@
     "react-native-screens": "~4.16.0",
     "react-native-view-shot": "^4.0.3",
     "react-native-web": "^0.21.2",
+    "react-native-worklets": "0.5.1",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
@@ -50,14 +51,11 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "setupFilesAfterEnv": [
-      "@testing-library/react-native/extend-expect"
-    ],
     "transform": {
       "^.+\\.[tj]sx?$": "babel-jest"
     },
     "moduleNameMapper": {
-      "^@/(.*)": "<rootDir>/src/$1"
+      "^@/(.*)": "<rootDir>/$1"
     }
   }
 }
