@@ -27,18 +27,13 @@ type Props = {
   isCustomColor?: boolean;
   onChange: (color: string) => void;
   onClose?: () => void;
-}
-export default function CustomColorPicker({
-  buttonWidth,
-  isCustomColor = false,
-  onChange,
-  onClose,
-}: Props) {
+};
+export default function CustomColorPicker({ buttonWidth, isCustomColor = false, onChange, onClose }: Props) {
   const { customColor, setCustomColor } = useStore();
-  const [ resultColor, setResultColor ] = useState<string>(customColor);
+  const [resultColor, setResultColor] = useState<string>(customColor);
   const textColor = useMemo<string>(() => {
     return getTextColorForHex(customColor);
-  }, [customColor])
+  }, [customColor]);
 
   const currentColor = useSharedValue(customColor);
 
@@ -60,14 +55,15 @@ export default function CustomColorPicker({
   return (
     <BaseModal
       backgroundColor={currentColor}
-      button={<View
-        style={[styles.buttonContainer, { backgroundColor: customColor || '#eee', width: buttonWidth }]}
-      >
-        {isCustomColor
-          ? <CheckIcon color={textColor} size="32" />
-          : <Text style={{ color: textColor }}>Custom color</Text>
-        }
-      </View>}
+      button={
+        <View style={[styles.buttonContainer, { backgroundColor: customColor || '#eee', width: buttonWidth }]}>
+          {isCustomColor ? (
+            <CheckIcon color={textColor} size="32" />
+          ) : (
+            <Text style={{ color: textColor }}>Custom color</Text>
+          )}
+        </View>
+      }
       onClose={onModalClose}
     >
       <ThemedView style={styles.pickerContainer}>
@@ -75,7 +71,7 @@ export default function CustomColorPicker({
           value={resultColor}
           sliderThickness={25}
           thumbSize={24}
-          thumbShape='circle'
+          thumbShape="circle"
           onChange={onColorChange}
           onCompleteJS={onColorPick}
           thumbAnimationDuration={100}
@@ -87,8 +83,7 @@ export default function CustomColorPicker({
         >
           <View>
             <ThemedText style={styles.sliderLabel}>Red</ThemedText>
-            <RedSlider style={styles.sliderStyle}
-            />
+            <RedSlider style={styles.sliderStyle} />
           </View>
 
           <View>
@@ -107,16 +102,12 @@ export default function CustomColorPicker({
           </View>
 
           <Divider />
-          <Swatches
-            style={styles.swatchesContainer}
-            swatchStyle={styles.swatchStyle}
-            colors={customSwatches}
-          />
+          <Swatches style={styles.swatchesContainer} swatchStyle={styles.swatchStyle} colors={customSwatches} />
           <Divider />
 
           <View style={styles.previewRow}>
-            <PreviewText style={{ color: '#707070' }} colorFormat='rgba' />
-            <PreviewText style={{ color: '#707070' }} colorFormat='hex' />
+            <PreviewText style={{ color: '#707070' }} colorFormat="rgba" />
+            <PreviewText style={{ color: '#707070' }} colorFormat="hex" />
           </View>
         </ColorPicker>
       </ThemedView>

@@ -9,12 +9,7 @@ type BaseModalProps = PropsWithChildren & {
   onClose?: () => void;
 };
 
-export default function BaseModal({
-  backgroundColor,
-  button,
-  children,
-  onClose,
-}: BaseModalProps) {
+export default function BaseModal({ backgroundColor, button, children, onClose }: BaseModalProps) {
   const [showModal, setShowModal] = useState(false);
 
   const backgroundColorStyle = useAnimatedStyle(() => {
@@ -28,26 +23,16 @@ export default function BaseModal({
 
   return (
     <>
-      <Pressable
-        onPress={() => setShowModal(true)}
-      >
-        {button}
-      </Pressable>
+      <Pressable onPress={() => setShowModal(true)}>{button}</Pressable>
 
-      <Modal onRequestClose={() => setShowModal(false)} visible={showModal} animationType='slide'>
-        <Animated.View
-          style={[styles.modalContainer, backgroundColorStyle]}
-        >
+      <Modal onRequestClose={() => setShowModal(false)} visible={showModal} animationType="slide">
+        <Animated.View style={[styles.modalContainer, backgroundColorStyle]}>
           <View style={styles.content}>
             {children}
-            <Pressable
-              style={styles.closeButton}
-              onPress={doClose}
-            >
+            <Pressable style={styles.closeButton} onPress={doClose}>
               <XIcon size={24} />
             </Pressable>
           </View>
-
         </Animated.View>
       </Modal>
     </>

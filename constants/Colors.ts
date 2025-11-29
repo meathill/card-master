@@ -36,4 +36,4 @@ export const BackgroundColors = [
   'purple',
   'pink',
   'gray',
-]
+];

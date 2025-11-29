@@ -1,4 +1,4 @@
-import { CardData } from "@/types";
+import { CardData } from '@/types';
 
 export const Qualities = ['N', 'R', 'SR', 'SSR', 'UR'] as const;
 export const SkillLevels = ['D', 'C', 'B', 'A', 'S'] as const;
@@ -11,7 +11,7 @@ export function createDefaultCard(): CardData {
     imageUri: undefined,
     skills: [
       { title: '', content: '', level: 'A' },
-      { title: '', content: '', level: 'A' }
-    ]
+      { title: '', content: '', level: 'A' },
+    ],
   };
 }

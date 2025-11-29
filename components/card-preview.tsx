@@ -22,11 +22,7 @@ function SkillBlock({ skills }: { skills: Skill[] }) {
         <View key={`${skill.title}-${index}`} style={styles.skillItem}>
           <View style={styles.skillHeader}>
             <Text style={styles.skillLevel}>Lv.{skill.level}</Text>
-            <Text 
-              style={styles.skillTitle}
-              numberOfLines={1} 
-              ellipsizeMode="clip"
-            >
+            <Text style={styles.skillTitle} numberOfLines={1} ellipsizeMode="clip">
               {skill.title || '技能标题'}
             </Text>
           </View>
@@ -40,7 +36,7 @@ function SkillBlock({ skills }: { skills: Skill[] }) {
 export default function CardPreview({
   card,
   onDownload,
-  viewShotRef
+  viewShotRef,
 }: {
   card: CardData;
   onDownload: () => void;
@@ -50,21 +46,11 @@ export default function CardPreview({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>制卡大师</Text>
-      </View>
       <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }} style={styles.viewShot}>
-        <View 
-          style={styles.cardInner}
-          collapsable={false}
-        >
+        <View style={styles.cardInner} collapsable={false}>
           <View style={styles.imageContainer}>
             {card.imageUri ? (
-              <Image 
-                source={{ uri: card.imageUri }} 
-                style={styles.image}
-                resizeMode="cover" 
-              />
+              <Image source={{ uri: card.imageUri }} style={styles.image} resizeMode="cover" />
             ) : (
               <View style={styles.imagePlaceholder}>
                 <ImagePlus color="#cbd5e1" size={48} />
@@ -75,20 +61,12 @@ export default function CardPreview({
             <QualityBadge quality={card.quality} />
             <View style={styles.cardInfo}>
               <View style={styles.nameContainer}>
-                <Text 
-                  style={styles.cardName}
-                  numberOfLines={1} 
-                  ellipsizeMode="clip"
-                >
+                <Text style={styles.cardName} numberOfLines={1} ellipsizeMode="clip">
                   {card.name}
                 </Text>
               </View>
               <View style={styles.subtitleContainer}>
-                <Text 
-                  style={styles.cardSubtitle}
-                  numberOfLines={1} 
-                  ellipsizeMode="clip"
-                >
+                <Text style={styles.cardSubtitle} numberOfLines={1} ellipsizeMode="clip">
                   {card.subtitle}
                 </Text>
               </View>
@@ -101,10 +79,7 @@ export default function CardPreview({
         </View>
       </ViewShot>
       <View style={styles.downloadContainer}>
-        <Pressable 
-          onPress={onDownload} 
-          style={styles.downloadButton}
-        >
+        <Pressable onPress={onDownload} style={styles.downloadButton}>
           <Download color="#0f172a" size={20} />
           <Text style={styles.downloadText}>下载</Text>
         </Pressable>
@@ -123,18 +98,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     marginBottom: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontWeight: '900',
-    fontSize: 20,
   },
   viewShot: {
     marginHorizontal: 16,

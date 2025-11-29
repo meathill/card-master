@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  Modal,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, Pressable, Modal, FlatList, StyleSheet } from 'react-native';
 import { SelectionState } from '@/types';
 
-export default function SelectionModal({ state, setState }: { state: SelectionState; setState: (value: SelectionState) => void }) {
+export default function SelectionModal({
+  state,
+  setState,
+}: {
+  state: SelectionState;
+  setState: (value: SelectionState) => void;
+}) {
   const [tempValue, setTempValue] = useState(state.value);
 
   useEffect(() => {
@@ -17,7 +16,12 @@ export default function SelectionModal({ state, setState }: { state: SelectionSt
   }, [state.value, state.visible]);
 
   return (
-    <Modal visible={state.visible} transparent animationType="slide" onRequestClose={() => setState({ ...state, visible: false })}>
+    <Modal
+      visible={state.visible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setState({ ...state, visible: false })}
+    >
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={styles.title}>{state.title}</Text>
@@ -35,10 +39,7 @@ export default function SelectionModal({ state, setState }: { state: SelectionSt
             )}
           />
           <View style={styles.actions}>
-            <Pressable
-              style={styles.cancelButton}
-              onPress={() => setState({ ...state, visible: false })}
-            >
+            <Pressable style={styles.cancelButton} onPress={() => setState({ ...state, visible: false })}>
               <Text>取消</Text>
             </Pressable>
             <Pressable

@@ -9,17 +9,17 @@ export async function setupDatabase() {
   const db = await getDb();
   await db.execAsync(
     'CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY NOT NULL, value TEXT);' +
-      'CREATE TABLE IF NOT EXISTS feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, createdAt TEXT);'
+      'CREATE TABLE IF NOT EXISTS feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, createdAt TEXT);',
   );
   return db;
 }
 
 export async function saveCardData(card: CardData) {
   const db = await getDb();
-  await db.runAsync(
-    'INSERT INTO kv(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
-    ['card', JSON.stringify(card)]
-  );
+  await db.runAsync('INSERT INTO kv(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value', [
+    'card',
+    JSON.stringify(card),
+  ]);
 }
 
 export async function loadCardData(): Promise<CardData | null> {

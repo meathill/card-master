@@ -1,4 +1,4 @@
-import { Qualities, SkillLevels } from "@/constants";
+import { Qualities, SkillLevels } from '@/constants';
 
 export type Quality = (typeof Qualities)[number];
 export type SkillLevel = (typeof SkillLevels)[number];
@@ -16,7 +16,6 @@ export type Skill = {
   content: string;
   level: string;
 };
-
 
 export type SelectionOption = { label: string; value: string };
 

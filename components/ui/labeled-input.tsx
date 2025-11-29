@@ -7,7 +7,7 @@ export default function LabeledInput({
   placeholder,
   onChangeText,
   maxLength,
-  multiline = false
+  multiline = false,
 }: {
   label: string;
   value: string;
@@ -28,7 +28,9 @@ export default function LabeledInput({
           multiline={multiline}
           style={styles.input}
         />
-        <Text style={styles.counter}>{value.length}/{maxLength}</Text>
+        <Text style={styles.counter}>
+          {value.length}/{maxLength}
+        </Text>
       </View>
     </View>
   );

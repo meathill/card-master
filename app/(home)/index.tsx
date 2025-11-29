@@ -1,12 +1,5 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
 import ViewShot from 'react-native-view-shot';
@@ -18,26 +11,26 @@ import BottomDrawer, { BottomDrawerRef } from '@/components/BottomDrawer';
 import LabeledInput from '@/components/ui/labeled-input';
 import SettingsTabs from '@/components/settings-tabs';
 import SelectionModal from '@/components/modal/selection-modal';
-import FeedbackModal from '@/components/modal/feedback-modal';
 import { createDefaultCard, Qualities, SkillLevels } from '@/constants';
-import { filterVisibleSkills, truncateText, validateFeedback } from '@/utils/validation';
+import { filterVisibleSkills } from '@/utils/validation';
 import { CardData, Quality, SkillLevel, SelectionState, SelectionOption } from '@/types';
-import { setupDatabase, saveCardData, loadCardData, logFeedback } from '@/lib/db';
+import { setupDatabase, saveCardData, loadCardData } from '@/lib/db';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {Href, Link} from 'expo-router';
 
 const TIMING_CONFIG = { duration: 250, easing: Easing.out(Easing.cubic) };
 
 export default function Card() {
   const [card, setCard] = useState<CardData>(createDefaultCard());
   const [activeTab, setActiveTab] = useState<'basic' | 'skills' | 'stats'>('basic');
-  const [feedbackVisible, setFeedbackVisible] = useState(false);
-  const [feedbackContent, setFeedbackContent] = useState('');
   const [selectionState, setSelectionState] = useState<SelectionState>({
     title: '',
     options: [],
     value: '',
-    visible: false
+    visible: false,
   });
   const [dbReady, setDbReady] = useState(false);
+  const { top, bottom } = useSafeAreaInsets();
   const viewShotRef = useRef<ViewShot | null>(null);
   const drawerRef = useRef<BottomDrawerRef>(null);
   const previewScale = useSharedValue(1);
@@ -105,7 +98,7 @@ export default function Card() {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [3, 4],
-      quality: 1
+      quality: 1,
     });
 
     if (!result.canceled) {
@@ -130,22 +123,6 @@ export default function Card() {
     }
   };
 
-  const onSubmitFeedback = async () => {
-    const result = validateFeedback(feedbackContent);
-    if (!result.valid) {
-      Alert.alert(result.error ?? '请填写内容');
-      return;
-    }
-    await logFeedback(feedbackContent.trim());
-    setFeedbackContent('');
-    Alert.alert('你的反馈我们已收到，谢谢！', '', [
-      {
-        text: '好的',
-        onPress: () => setFeedbackVisible(false)
-      }
-    ]);
-  };
-
   const visibleSkills = useMemo(() => filterVisibleSkills(card.skills), [card.skills]);
 
   return (
@@ -155,22 +132,17 @@ export default function Card() {
           <CardPreview card={card} onDownload={handleDownload} viewShotRef={viewShotRef} />
         </Animated.View>
       </Pressable>
-      
+
       <BottomDrawer ref={drawerRef} onProgressChange={handleDrawerProgress}>
         <View style={styles.settingsContainer}>
           <View style={styles.settingsHeader}>
-            <Text style={styles.settingsTitle}>设置</Text>
-            <Pressable 
-              onPress={() => setFeedbackVisible(true)} 
-              style={styles.infoButton}
-            >
-              <Info size={18} color="#0f172a" />
-            </Pressable>
+            <SettingsTabs active={activeTab} onChange={setActiveTab} />
+            <Link asChild href={"/about" as Href}>
+              <Pressable style={styles.infoButton}>
+                <Info size={18} color="#0f172a" />
+              </Pressable>
+            </Link>
           </View>
-          <SettingsTabs 
-            active={activeTab} 
-            onChange={setActiveTab} 
-          />
           <ScrollView style={styles.scrollView}>
             {activeTab === 'basic' && (
               <View>
@@ -190,10 +162,7 @@ export default function Card() {
                 />
                 <View style={styles.fieldContainer}>
                   <Text style={styles.fieldLabel}>图片</Text>
-                  <Pressable
-                    onPress={handlePickImage}
-                    style={styles.imagePickerButton}
-                  >
+                  <Pressable onPress={handlePickImage} style={styles.imagePickerButton}>
                     <ImagePlus color="#0f172a" />
                     <Text style={styles.imagePickerText}>{card.imageUri ? '重新选择图片' : '从相册选图'}</Text>
                   </Pressable>
@@ -206,7 +175,7 @@ export default function Card() {
                         '选择品质',
                         Qualities.map((q) => ({ label: q, value: q })),
                         card.quality,
-                        (value) => setCard((prev) => ({ ...prev, quality: value as Quality }))
+                        (value) => setCard((prev) => ({ ...prev, quality: value as Quality })),
                       )
                     }
                     style={styles.selectButton}
@@ -263,7 +232,7 @@ export default function Card() {
                                 const skills = [...prev.skills];
                                 skills[index] = { ...skills[index], level: value };
                                 return { ...prev, skills };
-                              })
+                              }),
                           )
                         }
                         style={styles.skillLevelButton}
@@ -289,14 +258,10 @@ export default function Card() {
         </View>
       </BottomDrawer>
 
+      <View style={{ ...styles.h1, top }}>
+        <Text style={styles.h1Text}>制卡大师</Text>
+      </View>
       <SelectionModal state={selectionState} setState={setSelectionState} />
-      <FeedbackModal
-        visible={feedbackVisible}
-        content={feedbackContent}
-        onChange={(value) => setFeedbackContent(truncateText(value, 1000))}
-        onClose={() => setFeedbackVisible(false)}
-        onSubmit={onSubmitFeedback}
-      />
     </GestureHandlerRootView>
   );
 }
@@ -305,6 +270,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  h1: {
+    position: 'absolute',
+    left: 16,
+  },
+  h1Text: {
+    color: '#fff',
+    fontWeight: '900',
+    fontSize: 20,
   },
   previewContainer: {
     flex: 1,
@@ -320,12 +294,9 @@ const styles = StyleSheet.create({
   settingsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
     marginBottom: 12,
-  },
-  settingsTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginEnd: 8,
   },
   infoButton: {
     padding: 8,

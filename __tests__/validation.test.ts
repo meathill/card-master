@@ -30,12 +30,12 @@ describe('filterVisibleSkills', () => {
     const skills = [
       { title: 'A', content: '', level: 'A' },
       { title: '', content: 'desc', level: 'B' },
-      { title: '', content: '', level: 'C' }
+      { title: '', content: '', level: 'C' },
     ];
 
     expect(filterVisibleSkills(skills)).toEqual([
       { title: 'A', content: '', level: 'A' },
-      { title: '', content: 'desc', level: 'B' }
+      { title: '', content: 'desc', level: 'B' },
     ]);
   });
 });

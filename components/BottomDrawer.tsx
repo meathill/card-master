@@ -1,13 +1,7 @@
 import { ReactNode, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  runOnJS,
-  Easing,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming, runOnJS, Easing } from 'react-native-reanimated';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HANDLE_HEIGHT = 24;
@@ -34,9 +28,12 @@ const BottomDrawer = forwardRef<BottomDrawerRef, Props>(({ children, onProgressC
   const context = useSharedValue({ y: 0 });
   const maxTranslate = MAX_DRAWER_HEIGHT - MIN_DRAWER_HEIGHT;
 
-  const notifyProgress = useCallback((progress: number) => {
-    onProgressChange?.(progress);
-  }, [onProgressChange]);
+  const notifyProgress = useCallback(
+    (progress: number) => {
+      onProgressChange?.(progress);
+    },
+    [onProgressChange],
+  );
 
   useImperativeHandle(ref, () => ({
     collapse: () => {
@@ -87,9 +84,7 @@ const BottomDrawer = forwardRef<BottomDrawerRef, Props>(({ children, onProgressC
         <View style={styles.handleContainer}>
           <View style={styles.handle} />
         </View>
-        <View style={styles.content}>
-          {children}
-        </View>
+        <View style={styles.content}>{children}</View>
       </Animated.View>
     </GestureDetector>
   );

@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function SettingsTabs({
   active,
-  onChange
+  onChange,
 }: {
   active: 'basic' | 'skills' | 'stats';
   onChange: (value: 'basic' | 'skills' | 'stats') => void;
@@ -10,7 +10,7 @@ export default function SettingsTabs({
   const tabs: { key: 'basic' | 'skills' | 'stats'; label: string }[] = [
     { key: 'basic', label: '基本' },
     { key: 'skills', label: '技能' },
-    { key: 'stats', label: '数值' }
+    { key: 'stats', label: '数值' },
   ];
 
   return (
@@ -21,9 +21,7 @@ export default function SettingsTabs({
           onPress={() => onChange(tab.key)}
           style={[styles.tab, active === tab.key && styles.tabActive]}
         >
-          <Text style={[styles.tabText, active === tab.key && styles.tabTextActive]}>
-            {tab.label}
-          </Text>
+          <Text style={[styles.tabText, active === tab.key && styles.tabTextActive]}>{tab.label}</Text>
         </Pressable>
       ))}
     </View>
@@ -36,7 +34,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 9999,
     padding: 4,
-    marginBottom: 16,
+    width: '80%',
   },
   tab: {
     flex: 1,
