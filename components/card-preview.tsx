@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import ViewShot from 'react-native-view-shot';
-import { Download, ImagePlus } from 'lucide-react-native';
+import { ImagePlus } from 'lucide-react-native';
 import { CardData, Quality, Skill } from '@/types';
 import { filterVisibleSkills } from '@/utils/validation';
 
@@ -35,11 +35,9 @@ function SkillBlock({ skills }: { skills: Skill[] }) {
 
 export default function CardPreview({
   card,
-  onDownload,
   viewShotRef,
 }: {
   card: CardData;
-  onDownload: () => void;
   viewShotRef: React.RefObject<ViewShot | null>;
 }) {
   const visibleSkills = filterVisibleSkills(card.skills);
@@ -78,12 +76,6 @@ export default function CardPreview({
           </View>
         </View>
       </ViewShot>
-      <View style={styles.downloadContainer}>
-        <Pressable onPress={onDownload} style={styles.downloadButton}>
-          <Download color="#0f172a" size={20} />
-          <Text style={styles.downloadText}>下载</Text>
-        </Pressable>
-      </View>
     </View>
   );
 }
@@ -221,24 +213,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#fff',
     fontSize: 12,
-  },
-  downloadContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  downloadButton: {
-    backgroundColor: '#fff',
-    borderRadius: 9999,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  downloadText: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
   },
 });

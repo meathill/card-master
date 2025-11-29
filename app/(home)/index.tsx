@@ -1,22 +1,21 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
 import ViewShot from 'react-native-view-shot';
-import { ChevronDown, ImagePlus, Info } from 'lucide-react-native';
+import { DownloadIcon, Info } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import CardPreview from '@/components/card-preview';
 import BottomDrawer, { BottomDrawerRef } from '@/components/BottomDrawer';
-import LabeledInput from '@/components/ui/labeled-input';
 import SettingsTabs from '@/components/settings-tabs';
+import { BasicSettings, SkillsSettings, StatsSettings } from '@/components/settings';
 import SelectionModal from '@/components/modal/selection-modal';
-import { createDefaultCard, Qualities, SkillLevels } from '@/constants';
-import { filterVisibleSkills } from '@/utils/validation';
-import { CardData, Quality, SkillLevel, SelectionState, SelectionOption } from '@/types';
+import { createDefaultCard } from '@/constants';
+import { CardData, SelectionState, SelectionOption } from '@/types';
 import { setupDatabase, saveCardData, loadCardData } from '@/lib/db';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {Href, Link} from 'expo-router';
+import { Href, Link } from 'expo-router';
 
 const TIMING_CONFIG = { duration: 250, easing: Easing.out(Easing.cubic) };
 
@@ -123,13 +122,11 @@ export default function Card() {
     }
   };
 
-  const visibleSkills = useMemo(() => filterVisibleSkills(card.skills), [card.skills]);
-
   return (
     <GestureHandlerRootView style={styles.container}>
       <Pressable style={styles.previewContainer} onPress={handlePreviewPress}>
         <Animated.View style={previewAnimatedStyle}>
-          <CardPreview card={card} onDownload={handleDownload} viewShotRef={viewShotRef} />
+          <CardPreview card={card} viewShotRef={viewShotRef} />
         </Animated.View>
       </Pressable>
 
@@ -145,121 +142,30 @@ export default function Card() {
           </View>
           <ScrollView style={styles.scrollView}>
             {activeTab === 'basic' && (
-              <View>
-                <LabeledInput
-                  label="名称"
-                  value={card.name}
-                  placeholder="请输入名称"
-                  maxLength={15}
-                  onChangeText={(text) => setCard((prev) => ({ ...prev, name: text }))}
-                />
-                <LabeledInput
-                  label="副标题"
-                  value={card.subtitle}
-                  placeholder="请输入副标题"
-                  maxLength={25}
-                  onChangeText={(text) => setCard((prev) => ({ ...prev, subtitle: text }))}
-                />
-                <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>图片</Text>
-                  <Pressable onPress={handlePickImage} style={styles.imagePickerButton}>
-                    <ImagePlus color="#0f172a" />
-                    <Text style={styles.imagePickerText}>{card.imageUri ? '重新选择图片' : '从相册选图'}</Text>
-                  </Pressable>
-                </View>
-                <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>品质</Text>
-                  <Pressable
-                    onPress={() =>
-                      openSelect(
-                        '选择品质',
-                        Qualities.map((q) => ({ label: q, value: q })),
-                        card.quality,
-                        (value) => setCard((prev) => ({ ...prev, quality: value as Quality })),
-                      )
-                    }
-                    style={styles.selectButton}
-                  >
-                    <Text style={styles.selectButtonText}>{card.quality}</Text>
-                    <ChevronDown color="#0f172a" />
-                  </Pressable>
-                </View>
-              </View>
+              <BasicSettings
+                card={card}
+                onCardChange={setCard}
+                onPickImage={handlePickImage}
+                onOpenSelect={openSelect}
+              />
             )}
-
             {activeTab === 'skills' && (
-              <View>
-                {card.skills.map((skill, index) => (
-                  <View key={index} style={styles.fieldContainer}>
-                    <Text style={styles.fieldLabel}>技能 {index + 1}</Text>
-                    <LabeledInput
-                      label="技能标题"
-                      value={skill.title}
-                      placeholder="请输入技能标题"
-                      maxLength={10}
-                      onChangeText={(text) =>
-                        setCard((prev) => {
-                          const skills = [...prev.skills];
-                          skills[index] = { ...skills[index], title: text };
-                          return { ...prev, skills };
-                        })
-                      }
-                    />
-                    <LabeledInput
-                      label="技能正文"
-                      value={skill.content}
-                      placeholder="请输入技能描述"
-                      maxLength={120}
-                      multiline
-                      onChangeText={(text) =>
-                        setCard((prev) => {
-                          const skills = [...prev.skills];
-                          skills[index] = { ...skills[index], content: text };
-                          return { ...prev, skills };
-                        })
-                      }
-                    />
-                    <View style={styles.skillLevelContainer}>
-                      <Text style={styles.fieldLabel}>技能等级</Text>
-                      <Pressable
-                        onPress={() =>
-                          openSelect(
-                            '选择技能等级',
-                            SkillLevels.map((lvl) => ({ label: lvl, value: lvl })),
-                            skill.level as SkillLevel,
-                            (value) =>
-                              setCard((prev) => {
-                                const skills = [...prev.skills];
-                                skills[index] = { ...skills[index], level: value };
-                                return { ...prev, skills };
-                              }),
-                          )
-                        }
-                        style={styles.skillLevelButton}
-                      >
-                        <Text style={styles.selectButtonText}>{skill.level}</Text>
-                        <ChevronDown color="#0f172a" />
-                      </Pressable>
-                    </View>
-                  </View>
-                ))}
-                {visibleSkills.length === 0 && (
-                  <Text style={styles.hintText}>填写技能标题或内容后将在卡牌上显示。</Text>
-                )}
-              </View>
+              <SkillsSettings
+                card={card}
+                onCardChange={setCard}
+                onOpenSelect={openSelect}
+              />
             )}
-
-            {activeTab === 'stats' && (
-              <View>
-                <Text style={styles.placeholderText}>暂未开放的数值设置，敬请期待。</Text>
-              </View>
-            )}
+            {activeTab === 'stats' && <StatsSettings />}
           </ScrollView>
         </View>
       </BottomDrawer>
 
-      <View style={{ ...styles.h1, top }}>
+      <View style={{ ...styles.header, top }}>
         <Text style={styles.h1Text}>制卡大师</Text>
+        <Pressable onPress={handleDownload} style={styles.downloadButton}>
+          <DownloadIcon color="#0f172a" size={20} />
+        </Pressable>
       </View>
       <SelectionModal state={selectionState} setState={setSelectionState} />
     </GestureHandlerRootView>
@@ -271,9 +177,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  h1: {
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     position: 'absolute',
     left: 16,
+    right: 16,
   },
   h1Text: {
     color: '#fff',
@@ -308,62 +217,9 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 16,
   },
-  fieldContainer: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 14,
-    color: '#4A5565',
-    marginBottom: 8,
-  },
-  imagePickerButton: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#D1D5DC',
-    borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-    height: 144,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imagePickerText: {
-    fontSize: 14,
-    color: '#4A5565',
-    marginTop: 8,
-  },
-  selectButton: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#D1D5DC',
-    borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  selectButtonText: {
-    fontSize: 16,
-  },
-  skillLevelContainer: {
-    marginBottom: 8,
-  },
-  skillLevelButton: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  hintText: {
-    fontSize: 14,
-    color: '#6A7282',
-  },
-  placeholderText: {
-    color: '#6A7282',
+  downloadButton: {
+    backgroundColor: '#fff',
+    borderRadius: 9999,
+    padding: 8,
   },
 });
