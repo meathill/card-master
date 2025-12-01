@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, Easing } from 'react-native-reanimated';
 import ViewShot from 'react-native-view-shot';
-import { DownloadIcon, Info } from 'lucide-react-native';
+import { CircleQuestionMarkIcon, DownloadIcon } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import CardPreview from '@/components/card-preview';
@@ -16,8 +16,12 @@ import { CardData, SelectionState, SelectionOption } from '@/types';
 import { setupDatabase, saveCardData, loadCardData } from '@/lib/db';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Href, Link } from 'expo-router';
+import { Image } from 'expo-image';
+import Background from '@/assets/bg.webp';
 
-const TIMING_CONFIG = { duration: 250, easing: Easing.out(Easing.cubic) };
+// 抽屉展开时预览缩放比例，收起时为1
+const PREVIEW_SCALE_EXPANDED = 0.55;
+const PREVIEW_SCALE_COLLAPSED = 1;
 
 export default function Card() {
   const [card, setCard] = useState<CardData>(createDefaultCard());
@@ -29,36 +33,28 @@ export default function Card() {
     visible: false,
   });
   const [dbReady, setDbReady] = useState(false);
-  const { top, bottom } = useSafeAreaInsets();
+  const { top } = useSafeAreaInsets();
   const viewShotRef = useRef<ViewShot | null>(null);
   const drawerRef = useRef<BottomDrawerRef>(null);
-  const previewScale = useSharedValue(1);
-  const isCollapsed = useRef(false);
-
-  // 抽屉拖动时更新预览缩放
-  const handleDrawerProgress = useCallback((progress: number) => {
-    // progress: 0=展开, 1=收起
-    // 收起时放大到1.15
-    previewScale.value = 1 + progress * 0.15;
-    isCollapsed.current = progress > 0.5;
-  }, []);
+  const drawerProgress = useSharedValue(0); // 0=展开, 1=收起
 
   // 点击预览区切换抽屉状态
   const handlePreviewPress = useCallback(() => {
-    if (isCollapsed.current) {
+    if (drawerProgress.value > 0.5) {
       drawerRef.current?.expand();
-      previewScale.value = withTiming(1, TIMING_CONFIG);
-      isCollapsed.current = false;
     } else {
       drawerRef.current?.collapse();
-      previewScale.value = withTiming(1.15, TIMING_CONFIG);
-      isCollapsed.current = true;
     }
   }, []);
 
-  const previewAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: previewScale.value }],
-  }));
+  // 根据抽屉进度计算预览缩放
+  const previewAnimatedStyle = useAnimatedStyle(() => {
+    const scale = PREVIEW_SCALE_EXPANDED + drawerProgress.value * (PREVIEW_SCALE_COLLAPSED - PREVIEW_SCALE_EXPANDED);
+    return {
+      transform: [{ scale }],
+      transformOrigin: 'top center',
+    };
+  });
 
   // 初始化数据库并加载保存的卡牌数据
   useEffect(() => {
@@ -124,19 +120,20 @@ export default function Card() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
+      <Image contentFit="cover" source={Background} style={StyleSheet.absoluteFill} />
       <Pressable style={styles.previewContainer} onPress={handlePreviewPress}>
         <Animated.View style={previewAnimatedStyle}>
           <CardPreview card={card} viewShotRef={viewShotRef} />
         </Animated.View>
       </Pressable>
 
-      <BottomDrawer ref={drawerRef} onProgressChange={handleDrawerProgress}>
+      <BottomDrawer ref={drawerRef} progress={drawerProgress}>
         <View style={styles.settingsContainer}>
           <View style={styles.settingsHeader}>
             <SettingsTabs active={activeTab} onChange={setActiveTab} />
-            <Link asChild href={"/about" as Href}>
+            <Link asChild href={'/about' as Href}>
               <Pressable style={styles.infoButton}>
-                <Info size={18} color="#0f172a" />
+                <CircleQuestionMarkIcon size={18} color="#95A9C5" />
               </Pressable>
             </Link>
           </View>
@@ -149,13 +146,7 @@ export default function Card() {
                 onOpenSelect={openSelect}
               />
             )}
-            {activeTab === 'skills' && (
-              <SkillsSettings
-                card={card}
-                onCardChange={setCard}
-                onOpenSelect={openSelect}
-              />
-            )}
+            {activeTab === 'skills' && <SkillsSettings card={card} onCardChange={setCard} onOpenSelect={openSelect} />}
             {activeTab === 'stats' && <StatsSettings />}
           </ScrollView>
         </View>
@@ -198,7 +189,7 @@ const styles = StyleSheet.create({
   },
   settingsContainer: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
   },
   settingsHeader: {
     flexDirection: 'row',
@@ -214,8 +205,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 16,
   },
   downloadButton: {
     backgroundColor: '#fff',

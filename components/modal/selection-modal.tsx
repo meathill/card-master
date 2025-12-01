@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Modal, FlatList, StyleSheet } from 'react-native';
 import { SelectionState } from '@/types';
+import { sleep } from '@/utils';
 
 export default function SelectionModal({
   state,
@@ -10,6 +11,13 @@ export default function SelectionModal({
   setState: (value: SelectionState) => void;
 }) {
   const [tempValue, setTempValue] = useState(state.value);
+
+  async function doSelect(value: string) {
+    setTempValue(value);
+    await sleep(250);
+    state.onConfirm?.(value);
+    setState({ ...state, visible: false });
+  }
 
   useEffect(() => {
     setTempValue(state.value);
@@ -23,6 +31,7 @@ export default function SelectionModal({
       onRequestClose={() => setState({ ...state, visible: false })}
     >
       <View style={styles.overlay}>
+        <Pressable onPress={() => setState({ ...state, visible: false })} style={StyleSheet.absoluteFill} />
         <View style={styles.container}>
           <Text style={styles.title}>{state.title}</Text>
           <FlatList
@@ -30,7 +39,7 @@ export default function SelectionModal({
             keyExtractor={(item) => item.value}
             renderItem={({ item }) => (
               <Pressable
-                onPress={() => setTempValue(item.value)}
+                onPress={() => doSelect(item.value)}
                 style={[styles.option, tempValue === item.value && styles.optionSelected]}
               >
                 <Text style={styles.optionText}>{item.label}</Text>
@@ -38,20 +47,6 @@ export default function SelectionModal({
               </Pressable>
             )}
           />
-          <View style={styles.actions}>
-            <Pressable style={styles.cancelButton} onPress={() => setState({ ...state, visible: false })}>
-              <Text>取消</Text>
-            </Pressable>
-            <Pressable
-              style={styles.confirmButton}
-              onPress={() => {
-                state.onConfirm?.(tempValue);
-                setState({ ...state, visible: false });
-              }}
-            >
-              <Text style={styles.confirmButtonText}>确定</Text>
-            </Pressable>
-          </View>
         </View>
       </View>
     </Modal>
@@ -93,26 +88,5 @@ const styles = StyleSheet.create({
   selectedText: {
     color: '#1e40af',
     fontWeight: '600',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 8,
-    gap: 12,
-  },
-  cancelButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#E5E7EB',
-  },
-  confirmButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#1e40af',
-  },
-  confirmButtonText: {
-    color: '#fff',
   },
 });

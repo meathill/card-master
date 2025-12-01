@@ -1,7 +1,7 @@
-import { ReactNode, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { ReactNode, useImperativeHandle, forwardRef } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming, runOnJS, Easing } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing, SharedValue } from 'react-native-reanimated';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HANDLE_HEIGHT = 24;
@@ -20,62 +20,47 @@ export type BottomDrawerRef = {
 
 type Props = {
   children: ReactNode;
-  onProgressChange?: (progress: number) => void; // 0=展开, 1=收起
+  progress: SharedValue<number>; // 外部传入的 shared value，0=展开, 1=收起
 };
 
-const BottomDrawer = forwardRef<BottomDrawerRef, Props>(({ children, onProgressChange }, ref) => {
-  const translateY = useSharedValue(0);
+const BottomDrawer = forwardRef<BottomDrawerRef, Props>(({ children, progress }, ref) => {
   const context = useSharedValue({ y: 0 });
   const maxTranslate = MAX_DRAWER_HEIGHT - MIN_DRAWER_HEIGHT;
 
-  const notifyProgress = useCallback(
-    (progress: number) => {
-      onProgressChange?.(progress);
-    },
-    [onProgressChange],
-  );
-
   useImperativeHandle(ref, () => ({
     collapse: () => {
-      translateY.value = withTiming(maxTranslate, TIMING_CONFIG);
-      notifyProgress(1);
+      progress.value = withTiming(1, TIMING_CONFIG);
     },
     expand: () => {
-      translateY.value = withTiming(0, TIMING_CONFIG);
-      notifyProgress(0);
+      progress.value = withTiming(0, TIMING_CONFIG);
     },
   }));
 
   const gesture = Gesture.Pan()
     .onStart(() => {
-      context.value = { y: translateY.value };
+      context.value = { y: progress.value * maxTranslate };
     })
     .onUpdate((event) => {
       const newY = context.value.y + event.translationY;
-      translateY.value = Math.max(0, Math.min(newY, maxTranslate));
-      // 实时通知进度
-      runOnJS(notifyProgress)(translateY.value / maxTranslate);
+      const clampedY = Math.max(0, Math.min(newY, maxTranslate));
+      progress.value = clampedY / maxTranslate;
     })
     .onEnd((event) => {
       if (event.velocityY > 500) {
-        translateY.value = withTiming(maxTranslate, TIMING_CONFIG);
-        runOnJS(notifyProgress)(1);
+        progress.value = withTiming(1, TIMING_CONFIG);
       } else if (event.velocityY < -500) {
-        translateY.value = withTiming(0, TIMING_CONFIG);
-        runOnJS(notifyProgress)(0);
+        progress.value = withTiming(0, TIMING_CONFIG);
       } else {
-        if (translateY.value > maxTranslate / 2) {
-          translateY.value = withTiming(maxTranslate, TIMING_CONFIG);
-          runOnJS(notifyProgress)(1);
+        if (progress.value > 0.5) {
+          progress.value = withTiming(1, TIMING_CONFIG);
         } else {
-          translateY.value = withTiming(0, TIMING_CONFIG);
-          runOnJS(notifyProgress)(0);
+          progress.value = withTiming(0, TIMING_CONFIG);
         }
       }
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
-    height: MAX_DRAWER_HEIGHT - translateY.value,
+    height: MAX_DRAWER_HEIGHT - progress.value * maxTranslate,
   }));
 
   return (
@@ -99,9 +84,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#f1f5f9',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,

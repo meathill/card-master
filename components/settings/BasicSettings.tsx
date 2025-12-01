@@ -13,32 +13,28 @@ type Props = {
 
 export default function BasicSettings({ card, onCardChange, onPickImage, onOpenSelect }: Props) {
   return (
-    <View>
-      <LabeledInput
-        label="名称"
-        value={card.name}
-        placeholder="请输入名称"
-        maxLength={15}
-        onChangeText={(text) => onCardChange((prev) => ({ ...prev, name: text }))}
-      />
-      <LabeledInput
-        label="副标题"
-        value={card.subtitle}
-        placeholder="请输入副标题"
-        maxLength={25}
-        onChangeText={(text) => onCardChange((prev) => ({ ...prev, subtitle: text }))}
-      />
+    <View style={{ flexDirection: 'row', gap: 16 }}>
       <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>图片</Text>
         <Pressable onPress={onPickImage} style={styles.imagePickerButton}>
-          <ImagePlus color="#0f172a" />
-          <Text style={styles.imagePickerText}>
-            {card.imageUri ? '重新选择图片' : '从相册选图'}
-          </Text>
+          <ImagePlus color="#A3A3A3" />
+          <Text style={styles.imagePickerText}>{card.imageUri ? '重新选择图片' : '图片'}</Text>
         </Pressable>
       </View>
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>品质</Text>
+      <View style={{ flex: 1, gap: 12 }}>
+        <LabeledInput
+          label="名称"
+          value={card.name}
+          placeholder="请输入名称"
+          maxLength={15}
+          onChangeText={(text) => onCardChange((prev) => ({ ...prev, name: text }))}
+        />
+        <LabeledInput
+          label="副标题"
+          value={card.subtitle}
+          placeholder="请输入副标题"
+          maxLength={25}
+          onChangeText={(text) => onCardChange((prev) => ({ ...prev, subtitle: text }))}
+        />
         <Pressable
           onPress={() =>
             onOpenSelect(
@@ -60,40 +56,34 @@ export default function BasicSettings({ card, onCardChange, onPickImage, onOpenS
 
 const styles = StyleSheet.create({
   fieldContainer: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 14,
-    color: '#4A5565',
-    marginBottom: 8,
+    width: 75,
+    height: 100,
+    flexBasis: 75,
+    flexShrink: 0,
   },
   imagePickerButton: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#D1D5DC',
-    borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-    height: 144,
+    borderRadius: 6,
+    backgroundColor: '#F7F7F7',
+    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   imagePickerText: {
     fontSize: 14,
-    color: '#4A5565',
+    color: '#A3A3A3',
     marginTop: 8,
   },
   selectButton: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#D1D5DC',
-    borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-    padding: 12,
+    borderRadius: 6,
+    backgroundColor: '#F7F7F7',
+    height: 36,
+    paddingHorizontal: 12,
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   selectButtonText: {
-    fontSize: 16,
+    fontSize: 14,
   },
 });
