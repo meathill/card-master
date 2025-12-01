@@ -132,7 +132,7 @@ export default function Card() {
           <View style={styles.settingsHeader}>
             <SettingsTabs active={activeTab} onChange={setActiveTab} />
             <Link asChild href={'/about' as Href}>
-              <Pressable style={styles.infoButton}>
+              <Pressable style={styles.iconButton}>
                 <CircleQuestionMarkIcon size={18} color="#95A9C5" />
               </Pressable>
             </Link>
@@ -152,9 +152,9 @@ export default function Card() {
         </View>
       </BottomDrawer>
 
-      <View style={{ ...styles.header, top }}>
+      <View style={[styles.header, { top }]}>
         <Text style={styles.h1Text}>制卡大师</Text>
-        <Pressable onPress={handleDownload} style={styles.downloadButton}>
+        <Pressable onPress={handleDownload} style={styles.iconButton}>
           <DownloadIcon color="#0f172a" size={20} />
         </Pressable>
       </View>
@@ -169,11 +169,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     position: 'absolute',
     left: 16,
     right: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   h1Text: {
     color: '#fff',
@@ -198,17 +198,12 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
   },
-  infoButton: {
-    padding: 8,
-    borderRadius: 9999,
-    backgroundColor: '#fff',
-  },
   scrollView: {
     backgroundColor: '#fff',
   },
-  downloadButton: {
-    backgroundColor: '#fff',
-    borderRadius: 9999,
+  iconButton: {
     padding: 8,
+    borderRadius: 9999,
+    backgroundColor: '#fff',
   },
 });

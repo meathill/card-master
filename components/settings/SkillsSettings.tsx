@@ -23,12 +23,12 @@ function SkillEditor({
   onOpenSelect: Props['onOpenSelect'];
 }) {
   return (
-    <View style={styles.fieldContainer}>
-      <View style={styles.fieldLabel}>
-        <Text style={styles.fieldLabel}>技能 {index + 1}</Text>
+    <View style={styles.skillRow}>
+      <View style={styles.skillLabel}>
+        <Text style={styles.skillLabelText}>技能 {index + 1}</Text>
       </View>
-      <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
+      <View style={styles.skillInputs}>
+        <View style={styles.skillTitleRow}>
           <LabeledInput
             label="技能标题"
             value={skill.title}
@@ -36,24 +36,21 @@ function SkillEditor({
             maxLength={10}
             onChangeText={(text) => onUpdate(index, 'title', text)}
           />
-          <View style={styles.skillLevelContainer}>
-            <Pressable
-              onPress={() =>
-                onOpenSelect(
-                  '选择技能等级',
-                  SkillLevels.map((lvl) => ({ label: lvl, value: lvl })),
-                  skill.level,
-                  (value) => onUpdate(index, 'level', value),
-                )
-              }
-              style={styles.skillLevelButton}
-            >
-              <Text style={styles.selectButtonText}>{skill.level}</Text>
-              <ChevronDown color="#0f172a" />
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() =>
+              onOpenSelect(
+                '选择技能等级',
+                SkillLevels.map((lvl) => ({ label: lvl, value: lvl })),
+                skill.level,
+                (value) => onUpdate(index, 'level', value),
+              )
+            }
+            style={styles.levelButton}
+          >
+            <Text style={styles.levelButtonText}>{skill.level}</Text>
+            <ChevronDown color="#0f172a" />
+          </Pressable>
         </View>
-
         <LabeledInput
           label="技能正文"
           value={skill.content}
@@ -79,7 +76,7 @@ export default function SkillsSettings({ card, onCardChange, onOpenSelect }: Pro
   };
 
   return (
-    <View style={{ gap: 24 }}>
+    <View style={styles.container}>
       {card.skills.map((skill, index) => (
         <SkillEditor key={index} skill={skill} index={index} onUpdate={handleSkillUpdate} onOpenSelect={onOpenSelect} />
       ))}
@@ -89,30 +86,37 @@ export default function SkillsSettings({ card, onCardChange, onOpenSelect }: Pro
 }
 
 const styles = StyleSheet.create({
-  fieldContainer: {
+  container: {
+    gap: 24,
+  },
+  skillRow: {
     flexDirection: 'row',
     gap: 16,
   },
-  fieldLabel: {
+  skillLabel: {
     paddingTop: 6,
   },
-  fieldLabelText: {
+  skillLabelText: {
     fontSize: 14,
     color: '#4A5565',
   },
-  skillLevelContainer: {
-    marginBottom: 8,
+  skillInputs: {
+    flex: 1,
   },
-  skillLevelButton: {
-    backgroundColor: '#F7F7F7',
-    borderRadius: 6,
+  skillTitleRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  levelButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#F7F7F7',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  selectButtonText: {
+  levelButtonText: {
     fontSize: 16,
   },
   hintText: {

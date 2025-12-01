@@ -61,7 +61,7 @@ function SkillBlock({ skills }: { skills: Skill[] }) {
 
   return (
     <View style={styles.skillBlock}>
-      <View style={{ backgroundColor: '#FDEDD6', paddingVertical: 10, paddingHorizontal: 8, gap: 8 }}>
+      <View style={styles.skillBlockInner}>
         {skills.map((skill, index) => (
           <View key={`${skill.title}-${index}`} style={styles.skillItem}>
             <Text style={styles.skillLevel}>Lv.{skill.level}</Text>
@@ -138,16 +138,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  containerBg: {
-    width: '100%',
-    height: '100%',
-  },
   viewShot: {},
   cardInner: {
-    borderRadius: 18,
-    overflow: 'hidden',
     width: CARD_WIDTH * 0.9,
     height: (CARD_WIDTH * 0.9) / (57 / 87),
+    borderRadius: 18,
+    overflow: 'hidden',
     padding: 14,
     paddingBottom: 0,
   },
@@ -202,7 +198,6 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
   },
   subtitleContainer: {
-    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -223,6 +218,12 @@ const styles = StyleSheet.create({
     borderColor: '#896C3E',
     borderRadius: 7,
     padding: 3,
+  },
+  skillBlockInner: {
+    backgroundColor: '#FDEDD6',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    gap: 8,
   },
   skillItem: {
     flexDirection: 'row',

@@ -13,14 +13,14 @@ type Props = {
 
 export default function BasicSettings({ card, onCardChange, onPickImage, onOpenSelect }: Props) {
   return (
-    <View style={{ flexDirection: 'row', gap: 16 }}>
-      <View style={styles.fieldContainer}>
+    <View style={styles.container}>
+      <View style={styles.imageColumn}>
         <Pressable onPress={onPickImage} style={styles.imagePickerButton}>
           <ImagePlus color="#A3A3A3" />
           <Text style={styles.imagePickerText}>{card.imageUri ? '重新选择图片' : '图片'}</Text>
         </Pressable>
       </View>
-      <View style={{ flex: 1, gap: 12 }}>
+      <View style={styles.inputColumn}>
         <LabeledInput
           label="名称"
           value={card.name}
@@ -55,16 +55,23 @@ export default function BasicSettings({ card, onCardChange, onPickImage, onOpenS
 }
 
 const styles = StyleSheet.create({
-  fieldContainer: {
+  container: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  imageColumn: {
     width: 75,
-    height: 100,
     flexBasis: 75,
     flexShrink: 0,
   },
+  inputColumn: {
+    flex: 1,
+    gap: 12,
+  },
   imagePickerButton: {
+    height: 100,
     borderRadius: 6,
     backgroundColor: '#F7F7F7',
-    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -74,11 +81,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   selectButton: {
-    borderRadius: 6,
-    backgroundColor: '#F7F7F7',
     height: 36,
     paddingHorizontal: 12,
-    width: '100%',
+    borderRadius: 6,
+    backgroundColor: '#F7F7F7',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
