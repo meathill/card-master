@@ -64,7 +64,9 @@ function SkillBlock({ skills }: { skills: Skill[] }) {
       <View style={styles.skillBlockInner}>
         {skills.map((skill, index) => (
           <View key={`${skill.title}-${index}`} style={styles.skillItem}>
-            <Text style={styles.skillLevel}>Lv.{skill.level}</Text>
+            <View style={styles.skillIcon}>
+              <Text style={styles.skillLevel}>Lv.{skill.level}</Text>
+            </View>
             <View style={styles.skillRight}>
               <Text style={styles.skillTitle} numberOfLines={1} ellipsizeMode="clip">
                 {skill.title || '技能标题'}
@@ -142,9 +144,9 @@ const styles = StyleSheet.create({
   cardInner: {
     width: CARD_WIDTH * 0.9,
     height: (CARD_WIDTH * 0.9) / (57 / 87),
-    borderRadius: 18,
+    borderRadius: 12,
     overflow: 'hidden',
-    padding: 14,
+    padding: 12,
     paddingBottom: 0,
   },
   imageContainer: {
@@ -174,7 +176,7 @@ const styles = StyleSheet.create({
   },
   cardInfo: {
     position: 'absolute',
-    top: 16,
+    top: 20,
     left: 16,
     right: 30,
   },
@@ -216,21 +218,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5C36A',
     borderWidth: 0.75,
     borderColor: '#896C3E',
-    borderRadius: 7,
-    padding: 3,
+    borderRadius: 20,
+    padding: 6,
+    boxShadow: '0 4px 30.8px -15px rgba(0, 0, 0, 0.25)',
   },
   skillBlockInner: {
     backgroundColor: '#FDEDD6',
+    borderRadius: 16,
     paddingVertical: 10,
     paddingHorizontal: 8,
-    gap: 8,
+    gap: 12,
   },
   skillItem: {
     flexDirection: 'row',
+    gap: 8,
   },
   skillRight: {
-    alignItems: 'center',
-    marginBottom: 4,
+    gap: 2,
+  },
+  skillIcon: {
+    width: 32,
+    flexBasis: 32,
+    flexShrink: 0,
   },
   skillLevel: {
     fontSize: 12,
@@ -238,18 +247,19 @@ const styles = StyleSheet.create({
     color: '#6A7282',
   },
   skillTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
   },
   skillContent: {
     fontSize: 14,
-    color: '#1E2939',
+    color: '#402518',
   },
   footer: {
-    flexBasis: 30,
+    flexBasis: 40,
     flexShrink: 0,
-    height: 30,
+    height: 40,
     justifyContent: 'center',
+    paddingTop: 10,
   },
   footerText: {
     textAlign: 'center',

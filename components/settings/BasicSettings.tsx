@@ -17,7 +17,7 @@ export default function BasicSettings({ card, onCardChange, onPickImage, onOpenS
       <View style={styles.imageColumn}>
         <Pressable onPress={onPickImage} style={styles.imagePickerButton}>
           <ImagePlus color="#A3A3A3" />
-          <Text style={styles.imagePickerText}>{card.imageUri ? '重新选择图片' : '图片'}</Text>
+          <Text style={styles.imagePickerText}>{card.imageUri ? '重选' : '图片'}</Text>
         </Pressable>
       </View>
       <View style={styles.inputColumn}>
